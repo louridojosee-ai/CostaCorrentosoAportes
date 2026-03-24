@@ -39,7 +39,7 @@ export default async function handler(req, res) {
 
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.SPREADSHEET_ID,
-      range: 'Aportesygastos', // <--- IMPORTANTE: Reemplazá NOMBRE_DE_TU_HOJA por el nombre real de la pestaña
+      range: "Aportesygastos!A:F", // <--- IMPORTANTE: Reemplazá NOMBRE_DE_TU_HOJA por el nombre real de la pestaña
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [fila],

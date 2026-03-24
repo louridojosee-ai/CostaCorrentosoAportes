@@ -89,31 +89,72 @@
         Obteniendo TC oficial...
     </div>
 
-    <script>
-        function toggleTC(select, inputId) {
-            const input = document.getElementById(inputId);
-            if (select.value === 'USD') {
-                input.value = "1";
-                input.readOnly = true;
-                input.style.backgroundColor = "#f3f4f6";
-            } else {
-                input.value = "";
-                input.readOnly = false;
-                input.style.backgroundColor = "#fff";
-            }
+<script>
+    // 1. Lógica visual para el Tipo de Cambio
+    function toggleTC(select, inputId) {
+        const input = document.getElementById(inputId);
+        if (select.value === 'USD') {
+            input.value = "1";
+            input.readOnly = true;
+            input.style.backgroundColor = "#f3f4f6";
+        } else {
+            input.value = "";
+            input.readOnly = false;
+            input.style.backgroundColor = "#fff";
         }
+    }
 
-        async function fetchBNA() {
-            try {
-                const res = await fetch('https://api.bluelytics.com.ar/v2/latest');
-                const data = await res.json();
-                const venta = data.oficial.value_sell;
-                document.getElementById('bna-info').innerText = `BNA VENTA: $${venta} | ${new Date().toLocaleDateString('es-AR')}`;
-            } catch {
-                document.getElementById('bna-info').innerText = "TC no disponible";
+    // 2. FUNCIÓN DE ENVÍO (La que conecta con la carpeta api)
+    async function enviarDatos(e, tipo) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        const textoOriginal = btn.innerText;
+        btn.innerText = "Cargando...";
+        btn.disabled = true;
+
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData);
+        data.tipo = tipo;
+
+        try {
+            // Esto busca tu archivo en api/guardar.js
+            const res = await fetch('/api/guardar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                alert('¡' + tipo + ' guardado con éxito en el Excel!');
+                e.target.reset();
+            } else {
+                const errorData = await res.json();
+                alert('Error del servidor: ' + errorData.error);
             }
+        } catch (err) {
+            alert('Error de conexión. Revisá que la carpeta api esté en minúsculas.');
+        } finally {
+            btn.innerText = textoOriginal;
+            btn.disabled = false;
         }
-        fetchBNA();
-    </script>
+    }
+
+    // 3. VINCULACIÓN: Esto le dice a los botones qué hacer
+    document.getElementById('formAportes').onsubmit = (e) => enviarDatos(e, 'APORTE');
+    document.getElementById('formGastos').onsubmit = (e) => enviarDatos(e, 'GASTO');
+
+    // 4. Cotización BNA
+    async function fetchBNA() {
+        try {
+            const res = await fetch('https://api.bluelytics.com.ar/v2/latest');
+            const data = await res.json();
+            const venta = data.oficial.value_sell;
+            document.getElementById('bna-info').innerText = `BNA VENTA: $${venta} | ${new Date().toLocaleDateString('es-AR')}`;
+        } catch {
+            document.getElementById('bna-info').innerText = "TC no disponible";
+        }
+    }
+    fetchBNA();
+</script>
 </body>
 </html>

@@ -11,12 +11,22 @@ export default async function handler(req, res) {
 
     const sheets = google.sheets({ version: 'v4', auth });
     const data = req.body;
-    
-    // A: Tipo | B: Fecha | C: Monto | D: TC | E: Aportante | F: Concepto
-const tipoFormateado = data.tipo === 'APORTE' ? 'Aporte' : 'Gasto';
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+    const nombreHoja = 'Aportesygastos'; // Asegurate que sea el nombre exacto
 
+    // 1. Buscamos el contenido de la columna A para ver cuál es la última fila real
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${nombreHoja}!A:A`,
+    });
+
+    const filasActuales = response.data.values ? response.data.values.length : 0;
+    const proximaFila = filasActuales + 1;
+
+    // 2. Preparamos los datos (A a F)
+    const tipoFormateado = data.tipo === 'APORTE' ? 'Aporte' : 'Gasto';
     const fila = [
-      tipoFormateado, // <--- Ahora usa la versión prolija
+      tipoFormateado,
       data.fecha,
       data.monto,
       data.tc || '1',
@@ -24,16 +34,17 @@ const tipoFormateado = data.tipo === 'APORTE' ? 'Aporte' : 'Gasto';
       data.concepto
     ];
 
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: process.env.SPREADSHEET_ID,
-      range: "'Aportesygastos'!A:F", // <--- CAMBIÁ ESTO POR EL NOMBRE DE TU HOJA
+    // 3. Escribimos exactamente en la fila siguiente, ignorando las fórmulas de las columnas de al lado
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `${nombreHoja}!A${proximaFila}:F${proximaFila}`,
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [fila] },
     });
 
     return res.status(200).json({ success: true });
   } catch (error) {
-    console.error('Error de Google:', error);
+    console.error('Error:', error);
     return res.status(500).json({ error: error.message });
   }
 }

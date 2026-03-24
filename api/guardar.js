@@ -13,8 +13,10 @@ export default async function handler(req, res) {
     const data = req.body;
     
     // A: Tipo | B: Fecha | C: Monto | D: TC | E: Aportante | F: Concepto
+const tipoFormateado = data.tipo === 'APORTE' ? 'Aporte' : 'Gasto';
+
     const fila = [
-      data.tipo,
+      tipoFormateado, // <--- Ahora usa la versión prolija
       data.fecha,
       data.monto,
       data.tc || '1',

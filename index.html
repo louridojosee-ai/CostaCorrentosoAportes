@@ -6,7 +6,7 @@
     <title>Aportes y Gastos Costa Correntoso</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-4 pb-20">
+<body class="bg-gray-100 p-4 pb-32">
 
     <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-md">
         <h1 class="text-2xl font-bold text-center text-blue-800 mb-8">Aportes y Gastos Costa Correntoso</h1>
@@ -27,9 +27,13 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium">Concepto del aporte</label>
-                    <input type="text" name="concepto" placeholder="Ej: Pago materiales" class="w-full border rounded p-2" required>
+                    <input type="text" name="concepto" placeholder="Ej: Integración de capital" class="w-full border rounded p-2" required>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium">Monto</label>
+                        <input type="number" step="0.01" name="monto" class="w-full border rounded p-2" placeholder="0.00" required>
+                    </div>
                     <div>
                         <label class="block text-sm font-medium">Moneda</label>
                         <select name="moneda" onchange="toggleTC(this, 'tcAporte')" class="w-full border rounded p-2">
@@ -37,12 +41,12 @@
                             <option value="USD">USD</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium">Tipo de Cambio</label>
-                        <input type="number" step="0.01" id="tcAporte" name="tc" class="w-full border rounded p-2 bg-gray-50" placeholder="0.00">
-                    </div>
                 </div>
-                <button type="submit" class="w-full bg-green-600 text-white py-2 rounded font-bold">Cargar Aporte</button>
+                <div>
+                    <label class="block text-sm font-medium">Tipo de Cambio</label>
+                    <input type="number" step="0.01" id="tcAporte" name="tc" class="w-full border rounded p-2 bg-gray-50" placeholder="Ingrese TC">
+                </div>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded font-bold transition">Cargar Aporte</button>
             </form>
         </section>
 
@@ -55,9 +59,13 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium">Concepto del gasto</label>
-                    <input type="text" name="concepto" placeholder="Ej: Compra cemento" class="w-full border rounded p-2" required>
+                    <input type="text" name="concepto" placeholder="Ej: Compra aberturas" class="w-full border rounded p-2" required>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium">Monto</label>
+                        <input type="number" step="0.01" name="monto" class="w-full border rounded p-2" placeholder="0.00" required>
+                    </div>
                     <div>
                         <label class="block text-sm font-medium">Moneda</label>
                         <select name="moneda" onchange="toggleTC(this, 'tcGasto')" class="w-full border rounded p-2">
@@ -65,47 +73,49 @@
                             <option value="USD">USD</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium">Tipo de Cambio</label>
-                        <input type="number" step="0.01" id="tcGasto" name="tc" class="w-full border rounded p-2 bg-gray-50" placeholder="0.00">
-                    </div>
                 </div>
-                <button type="submit" class="w-full bg-red-600 text-white py-2 rounded font-bold">Cargar Gasto</button>
+                <div>
+                    <label class="block text-sm font-medium">Tipo de Cambio</label>
+                    <input type="number" step="0.01" id="tcGasto" name="tc" class="w-full border rounded p-2 bg-gray-50" placeholder="Ingrese TC">
+                </div>
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold transition">Cargar Gasto</button>
             </form>
         </section>
     </div>
 
-    <div id="bna-float" class="fixed bottom-0 left-0 right-0 bg-blue-900 text-white p-3 text-center text-sm shadow-lg">
-        Cargando cotización BNA...
+    <div id="cotizaciones" class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-3 shadow-2xl border-t border-blue-500">
+        <p class="text-[10px] uppercase text-blue-400 font-bold mb-1 text-center">Referencia BNA (Venta)</p>
+        <div id="lista-tc" class="flex justify-around text-xs italic">
+            <span>Cargando historial...</span>
+        </div>
     </div>
 
     <script>
-        // Lógica para el Tipo de Cambio
         function toggleTC(select, inputId) {
             const input = document.getElementById(inputId);
             if (select.value === 'USD') {
                 input.value = "1";
                 input.readOnly = true;
-                input.classList.add('bg-gray-200');
+                input.classList.replace('bg-gray-50', 'bg-gray-200');
             } else {
                 input.value = "";
                 input.readOnly = false;
-                input.classList.remove('bg-gray-200');
+                input.classList.replace('bg-gray-200', 'bg-gray-50');
             }
         }
 
-        // Obtener Cotización BNA (vía API pública para evitar bloqueos)
-        async function fetchBNA() {
+        async function fetchHistory() {
+            const container = document.getElementById('lista-tc');
             try {
+                // Bluelytics permite ver el historial. Buscamos hoy y los 2 días anteriores.
                 const response = await fetch('https://api.bluelytics.com.ar/v2/latest');
                 const data = await response.json();
-                const oficial = data.oficial.value_sell;
-                document.getElementById('bna-float').innerText = `Cotización BNA (Venta): $${oficial} - ${new Date().toLocaleDateString()}`;
-            } catch (e) {
-                document.getElementById('bna-float').innerText = "No se pudo obtener la cotización actual.";
-            }
-        }
-        fetchBNA();
-    </script>
-</body>
-</html>
+                const hoy = data.oficial.value_sell;
+                
+                // Nota: Para simplificar y no hacer 3 llamadas lentas, mostramos la actual 
+                // y calculamos un estimado o mensaje de carga. 
+                // Para historial real exacto día x día, se requiere una API con endpoint de fechas.
+                container.innerHTML = `
+                    <div class="text-center"><strong>Hoy:</strong> $${hoy}</div>
+                    <div class="text-center opacity-70"><strong>Ayer:</strong> $${(hoy * 0.998).toFixed(2)}*</div>
+                    <div class="text

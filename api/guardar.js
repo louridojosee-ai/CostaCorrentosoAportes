@@ -13,18 +13,33 @@ export default async function handler(req, res) {
   try {
     const data = req.body;
     
-    // IMPORTANTE: Este es el orden en que aparecerán en tu Excel (Columnas A a G)
-    // Podés mover estos elementos para que coincidan con tus columnas reales
+    // MAPA DE COLUMNAS SEGÚN TU EXCEL:
+    // A: Aporte/Gasto | B: Fecha | C: Monto | D: TC | E: Aportante | F: Concepto
     let fila = [];
+    
     if (data.tipo === 'APORTE') {
-      fila = ['APORTE', data.fecha, data.persona, data.concepto, data.monto, data.moneda, data.tc];
+      fila = [
+        'APORTE',      // Columna A
+        data.fecha,    // Columna B
+        data.monto,    // Columna C
+        data.tc,       // Columna D
+        data.persona,  // Columna E (Pablo/Omar)
+        data.concepto  // Columna F
+      ];
     } else {
-      fila = ['GASTO', data.fecha, '-', data.concepto, data.monto, data.moneda, data.tc];
+      fila = [
+        'GASTO',       // Columna A
+        data.fecha,    // Columna B
+        data.monto,    // Columna C
+        data.tc,       // Columna D
+        '-',           // Columna E (Gasto no tiene aportante)
+        data.concepto  // Columna F
+      ];
     }
 
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.SPREADSHEET_ID,
-      range: 'NOMBRE_DE_TU_PESTAÑA!A:G', // <--- CAMBIÁ "NOMBRE_DE_TU_PESTAÑA"
+      range: 'Aportesygastos', // <--- IMPORTANTE: Reemplazá NOMBRE_DE_TU_HOJA por el nombre real de la pestaña
       valueInputOption: 'USER_ENTERED',
       requestBody: {
         values: [fila],

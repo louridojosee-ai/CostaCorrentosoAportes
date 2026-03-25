@@ -1,28 +1,33 @@
 import { google } from 'googleapis';
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Método no permitido' });
-
   try {
     const auth = new google.auth.GoogleAuth({
       credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
-
     const sheets = google.sheets({ version: 'v4', auth });
-    
-    // Rango que abarca desde O11 hasta O12
-    const range = "'Aportesygastos'!O11:O12"; 
+    const spreadsheetId = process.env.SPREADSHEET_ID;
 
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: process.env.SPREADSHEET_ID,
-      range: range,
+    // 1. Leer Totales
+    const resTotales = await sheets.spreadsheets.values.get({
+      spreadsheetId, range: "'Aportesygastos'!O11:O12",
     });
 
-    // Devolvemos los valores: [[Omar], [Pablo]]
-    return res.status(200).json(response.data.values);
+    // 2. Leer los últimos movimientos (Columnas A a F)
+    const resMovimientos = await sheets.spreadsheets.values.get({
+      spreadsheetId, range: "'Aportesygastos'!A:F",
+    });
+
+    const todasLasFilas = resMovimientos.data.values || [];
+    // Filtramos filas vacías y sacamos las últimas 4
+    const ultimos4 = todasLasFilas.filter(f => f[0]).slice(-4).reverse();
+
+    return res.status(200).json({
+      totales: resTotales.data.values,
+      movimientos: ultimos4
+    });
   } catch (error) {
-    console.error('Error de lectura:', error);
     return res.status(500).json({ error: error.message });
   }
 }

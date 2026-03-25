@@ -55,7 +55,6 @@
                         <option value="Omar">Omar</option>
                     </select>
                 </div>
-
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold mb-1.5">Monto</label>
@@ -69,7 +68,6 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold mb-1.5">T. Cambio</label>
@@ -80,12 +78,10 @@
                         <input type="date" name="fecha" class="w-full p-3.5 rounded-xl" required>
                     </div>
                 </div>
-
                 <div>
                     <label class="block text-sm font-semibold mb-1.5">Concepto</label>
                     <input type="text" name="concepto" placeholder="Ej: Pago cuota marzo" class="w-full p-3.5 rounded-xl" required>
                 </div>
-
                 <button type="submit" class="w-full btn-green text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 text-lg tracking-wide">
                     GUARDAR APORTE
                 </button>
@@ -141,6 +137,19 @@
                 </button>
             </form>
         </section>
+
+        <section class="card-premium border-t-8 border-blue-500">
+            <div class="px-6 py-4 bg-blue-50 bg-opacity-10 border-b border-blue-900 flex justify-between items-center">
+                <h2 class="text-lg font-extrabold text-blue-400 tracking-tight">Últimos 4 Registros</h2>
+                <button onclick="actualizarDatos()" class="text-blue-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+            </div>
+            <div id="lista-movimientos" class="p-4 space-y-3">
+                <p class="text-center text-slate-500 text-sm italic">Cargando movimientos...</p>
+            </div>
+        </section>
+
     </div>
 
     <script>
@@ -167,18 +176,44 @@
             localStorage.setItem('theme', nuevoTema);
         };
 
-        async function actualizarTotales() {
+        async function actualizarDatos() {
             try {
                 const res = await fetch('/api/leer');
-                const datos = await res.json();
-                // O11 es Omar (índice 0), O12 es Pablo (índice 1)
-                document.getElementById('total-omar').innerText = `USD ${datos[0][0]}`;
-                document.getElementById('total-pablo').innerText = `USD ${datos[1][0]}`;
-            } catch (e) {
-                console.error("Error leyendo totales");
-            }
+                const data = await res.json();
+                
+                // Omar O11, Pablo O12
+                document.getElementById('total-omar').innerText = `USD ${data.totales[0][0]}`;
+                document.getElementById('total-pablo').innerText = `USD ${data.totales[1][0]}`;
+
+                const contenedor = document.getElementById('lista-movimientos');
+                contenedor.innerHTML = '';
+                
+                data.movimientos.forEach(mov => {
+                    const esGasto = mov[0].toLowerCase() === 'gasto';
+                    const colorMonto = esGasto ? 'text-red-400' : 'text-emerald-400';
+                    const bgIcon = esGasto ? 'bg-red-900/20' : 'bg-emerald-900/20';
+                    
+                    contenedor.innerHTML += `
+                        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-800 bg-opacity-40 border border-slate-700 border-opacity-50">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 ${bgIcon} rounded-lg flex items-center justify-center">
+                                    ${esGasto ? '💸' : '💰'}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm text-slate-200">${mov[5] || 'Concepto'}</p>
+                                    <p class="text-[10px] text-slate-500 uppercase">${mov[1]} • ${mov[4] !== '-' ? mov[4] : 'Obra'}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold ${colorMonto}">${mov[2]}</p>
+                                <p class="text-[9px] text-slate-500 uppercase tracking-widest">${mov[0]}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (e) { console.error("Error leyendo datos"); }
         }
-        actualizarTotales();
+        actualizarDatos();
 
         document.querySelectorAll('input[type="date"]').forEach(input => {
             input.value = new Date().toISOString().split('T')[0];
@@ -189,12 +224,10 @@
             if (select.value === 'USD') {
                 input.value = "1";
                 input.readOnly = true;
-                // Agregamos la opacidad y el cursor de prohibido
                 input.classList.add('opacity-50', 'cursor-not-allowed');
             } else {
                 input.value = "";
                 input.readOnly = false;
-                // QUITAMOS la opacidad y el cursor de prohibido para que sea normal
                 input.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
@@ -220,9 +253,8 @@
                 if (res.ok) {
                     alert('✅ ' + tipo + ' registrado correctamente');
                     e.target.reset();
-                    e.target.querySelector('input[type="date"]').value = new Date().toISOString().split('T')[0];
-                    // Actualizamos los números después de guardar
-                    actualizarTotales();
+                    document.querySelectorAll('input[type="date"]').forEach(i => i.value = new Date().toISOString().split('T')[0]);
+                    actualizarDatos();
                 } else {
                     const error = await res.json();
                     alert('❌ Error: ' + error.error);

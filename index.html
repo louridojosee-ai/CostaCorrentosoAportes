@@ -11,22 +11,16 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s, color 0.3s; }
         .card-premium { border-radius: 24px; border: 1px solid rgba(0,0,0,0.1); overflow: hidden; transition: all 0.3s; }
-        
-        /* MODO OSCURO (Predeterminado) */
         body.dark { background-color: #0f172a; color: #f1f5f9; }
         .dark .card-premium { background: #1e293b; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); border-color: #334155; }
         .dark input, .dark select { background-color: #334155; border: 1px solid #475569; color: #f1f5f9; }
         .dark .header-box { background: #1e293b; border: 1px solid #334155; }
-        .dark label { color: #94a3b8; }
         .dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1); }
         .dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.1); }
-
-        /* MODO CLARO */
         body.light { background-color: #f1f5f9; color: #1e293b; }
         .light .card-premium { background: white; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #e2e8f0; }
         .light input, .light select { background-color: #f8fafc; border: 1px solid #e2e8f0; color: #1e293b; }
         .light .header-box { background: white; border: 1px solid #e2e8f0; }
-
         .btn-green { background-color: #10b981; }
         .btn-red { background-color: #ef4444; }
         input:focus, select:focus { border-color: #3b82f6; outline: none; }
@@ -37,7 +31,7 @@
     <div class="max-w-md mx-auto mb-8 flex flex-col gap-3">
         <div class="flex justify-between items-center header-box p-4 rounded-2xl shadow-sm">
             <h1 class="text-xl font-extrabold tracking-tight">Costa Correntoso</h1>
-            <button id="theme-toggle" class="p-2 rounded-xl bg-slate-700 dark:bg-slate-800 transition-colors">
+            <button id="theme-toggle" class="p-2 rounded-xl bg-slate-800 transition-colors">
                 <span id="theme-icon">☀️</span>
             </button>
         </div>
@@ -96,13 +90,24 @@
                     GUARDAR APORTE
                 </button>
             </form>
+
+            <div class="mx-6 mb-6 p-4 rounded-2xl bg-black bg-opacity-20 border border-slate-700 flex justify-around items-center">
+                <div class="text-center">
+                    <p class="text-xs text-slate-400 uppercase font-bold tracking-widest mb-1">Omar</p>
+                    <p id="total-omar" class="text-lg font-extrabold text-emerald-400">---</p>
+                </div>
+                <div class="w-px h-8 bg-slate-700"></div>
+                <div class="text-center">
+                    <p class="text-xs text-slate-400 uppercase font-bold tracking-widest mb-1">Pablo</p>
+                    <p id="total-pablo" class="text-lg font-extrabold text-emerald-400">---</p>
+                </div>
+            </div>
         </section>
 
         <section class="card-premium border-t-8 border-red-500">
             <div class="px-6 py-5 bg-red-50 border-b border-red-100 flex items-center gap-3">
                 <h2 class="text-lg font-extrabold text-red-500 tracking-tight">Nuevo Gasto</h2>
             </div>
-
             <form id="formGastos" class="p-6 space-y-5">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -117,7 +122,6 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold mb-1.5">T. Cambio</label>
@@ -128,12 +132,10 @@
                         <input type="date" name="fecha" class="w-full p-3.5 rounded-xl" required>
                     </div>
                 </div>
-
                 <div>
                     <label class="block text-sm font-semibold mb-1.5">Concepto / Proveedor</label>
                     <input type="text" name="concepto" placeholder="Ej: Corralón El Maestro" class="w-full p-3.5 rounded-xl" required>
                 </div>
-
                 <button type="submit" class="w-full btn-red text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 text-lg tracking-wide">
                     GUARDAR GASTO
                 </button>
@@ -145,24 +147,17 @@
         const body = document.body;
         const btnToggle = document.getElementById('theme-toggle');
         const iconToggle = document.getElementById('theme-icon');
-        const tcBox = document.getElementById('bna-info');
 
-        // Función para aplicar estilos de tema
         function aplicarTema(tema) {
             if (tema === 'dark') {
                 body.classList.replace('light', 'dark');
                 iconToggle.innerText = '☀️';
-                tcBox.classList.add('bg-blue-900', 'text-blue-200', 'border-blue-800');
-                tcBox.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-100');
             } else {
                 body.classList.replace('dark', 'light');
                 iconToggle.innerText = '🌙';
-                tcBox.classList.remove('bg-blue-900', 'text-blue-200', 'border-blue-800');
-                tcBox.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-100');
             }
         }
 
-        // Lógica de inicio: Dark por defecto si no hay preferencia guardada
         const temaInicial = localStorage.getItem('theme') || 'dark';
         aplicarTema(temaInicial);
 
@@ -172,7 +167,19 @@
             localStorage.setItem('theme', nuevoTema);
         };
 
-        // Fecha de hoy
+        async function actualizarTotales() {
+            try {
+                const res = await fetch('/api/leer');
+                const datos = await res.json();
+                // O11 es Omar (índice 0), O12 es Pablo (índice 1)
+                document.getElementById('total-omar').innerText = `USD ${datos[0][0]}`;
+                document.getElementById('total-pablo').innerText = `USD ${datos[1][0]}`;
+            } catch (e) {
+                console.error("Error leyendo totales");
+            }
+        }
+        actualizarTotales();
+
         document.querySelectorAll('input[type="date"]').forEach(input => {
             input.value = new Date().toISOString().split('T')[0];
         });
@@ -212,6 +219,8 @@
                     alert('✅ ' + tipo + ' registrado correctamente');
                     e.target.reset();
                     e.target.querySelector('input[type="date"]').value = new Date().toISOString().split('T')[0];
+                    // Actualizamos los números después de guardar
+                    actualizarTotales();
                 } else {
                     const error = await res.json();
                     alert('❌ Error: ' + error.error);

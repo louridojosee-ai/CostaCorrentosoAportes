@@ -9,22 +9,40 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; color: #1e293b; }
-        .card-premium { background: white; border-radius: 24px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; overflow: hidden; }
-        input, select { border: 1px solid #e2e8f0; background-color: #f8fafc; transition: all 0.2s; }
-        input:focus, select:focus { border-color: #3b82f6; ring-color: #bfdbfe; background-color: white; }
-        .btn-green { background-color: #10b981; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3); }
-        .btn-green:active { transform: scale(0.97); }
-        .btn-red { background-color: #ef4444; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.3); }
-        .btn-red:active { transform: scale(0.97); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .card-premium { border-radius: 24px; border: 1px solid rgba(0,0,0,0.05); overflow: hidden; transition: all 0.3s; }
+        
+        /* MODO CLARO */
+        body.light { background-color: #f1f5f9; color: #1e293b; }
+        .light .card-premium { background: white; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .light input, .light select { background-color: #f8fafc; border: 1px solid #e2e8f0; color: #1e293b; }
+        .light .header-box { background: white; border: 1px solid #e2e8f0; }
+
+        /* MODO OSCURO */
+        body.dark { background-color: #0f172a; color: #f1f5f9; }
+        .dark .card-premium { background: #1e293b; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); border-color: #334155; }
+        .dark input, .dark select { background-color: #334155; border: 1px solid #475569; color: #f1f5f9; }
+        .dark .header-box { background: #1e293b; border: 1px solid #334155; }
+        .dark label { color: #94a3b8; }
+        .dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1); }
+        .dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.1); }
+
+        .btn-green { background-color: #10b981; }
+        .btn-red { background-color: #ef4444; }
+        input:focus, select:focus { border-color: #3b82f6; outline: none; }
     </style>
 </head>
-<body class="p-4 md:p-8 pb-16">
+<body class="light p-4 md:p-8 pb-16">
 
-    <div class="max-w-md mx-auto mb-8 flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Costa Correntoso</h1>
-        <div id="bna-info" class="text-sm font-bold bg-blue-50 text-blue-700 px-4 py-2 rounded-full border border-blue-100 shadow-inner">
-            Cargando BNA...
+    <div class="max-w-md mx-auto mb-8 flex flex-col gap-3">
+        <div class="flex justify-between items-center header-box p-4 rounded-2xl shadow-sm">
+            <h1 class="text-xl font-extrabold tracking-tight">Costa Correntoso</h1>
+            <button id="theme-toggle" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 transition-colors">
+                <span id="theme-icon">🌙</span>
+            </button>
+        </div>
+        <div id="bna-info" class="text-center text-xs font-bold bg-blue-50 text-blue-700 px-4 py-2 rounded-full border border-blue-100 dark:bg-blue-900 dark:text-blue-200 dark:border-blue-800">
+            Cargando TC BNA venta (hoy)...
         </div>
     </div>
 
@@ -32,14 +50,13 @@
 
         <section class="card-premium border-t-8 border-emerald-500">
             <div class="px-6 py-5 bg-emerald-50 border-b border-emerald-100 flex items-center gap-3">
-                <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11l3-3m0 0l3 3m-3-3v8m0-13a9 9 0 110 18 9 9 0 010-18z"></path></svg>
-                <h2 class="text-xl font-extrabold text-emerald-900 tracking-tight">Nuevo Aporte</h2>
+                <h2 class="text-lg font-extrabold text-emerald-600 tracking-tight">Nuevo Aporte</h2>
             </div>
             
             <form id="formAportes" class="p-6 space-y-5">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Aportante</label>
-                    <select name="persona" class="w-full p-3.5 rounded-xl outline-none" required>
+                    <label class="block text-sm font-semibold mb-1.5">Aportante</label>
+                    <select name="persona" class="w-full p-3.5 rounded-xl" required>
                         <option value="Pablo">Pablo</option>
                         <option value="Omar">Omar</option>
                     </select>
@@ -47,12 +64,12 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">Monto</label>
-                        <input type="number" step="any" name="monto" placeholder="0.00" class="w-full p-3.5 rounded-xl outline-none" required>
+                        <label class="block text-sm font-semibold mb-1.5">Monto</label>
+                        <input type="number" step="any" name="monto" placeholder="0.00" class="w-full p-3.5 rounded-xl" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">Moneda</label>
-                        <select name="moneda" onchange="toggleTC(this, 'tcAporte')" class="w-full p-3.5 rounded-xl outline-none">
+                        <label class="block text-sm font-semibold mb-1.5">Moneda</label>
+                        <select name="moneda" onchange="toggleTC(this, 'tcAporte')" class="w-full p-3.5 rounded-xl">
                             <option value="USD">USD</option>
                             <option value="ARS">ARS</option>
                         </select>
@@ -61,21 +78,21 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">T. Cambio</label>
-                        <input type="number" step="any" id="tcAporte" name="tc" value="1" readonly class="w-full p-3.5 rounded-xl outline-none bg-slate-100 text-slate-500 border border-slate-200">
+                        <label class="block text-sm font-semibold mb-1.5">T. Cambio</label>
+                        <input type="number" step="any" id="tcAporte" name="tc" value="1" readonly class="w-full p-3.5 rounded-xl opacity-60 cursor-not-allowed">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">Fecha</label>
-                        <input type="date" name="fecha" class="w-full p-3.5 rounded-xl outline-none text-slate-700" required>
+                        <label class="block text-sm font-semibold mb-1.5">Fecha</label>
+                        <input type="date" name="fecha" class="w-full p-3.5 rounded-xl" required>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Concepto</label>
-                    <input type="text" name="concepto" placeholder="Ej: Pago cuota marzo" class="w-full p-3.5 rounded-xl outline-none" required>
+                    <label class="block text-sm font-semibold mb-1.5">Concepto</label>
+                    <input type="text" name="concepto" placeholder="Ej: Pago cuota marzo" class="w-full p-3.5 rounded-xl" required>
                 </div>
 
-                <button type="submit" class="w-full btn-green text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95 text-lg tracking-wide">
+                <button type="submit" class="w-full btn-green text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 text-lg tracking-wide">
                     GUARDAR APORTE
                 </button>
             </form>
@@ -83,19 +100,18 @@
 
         <section class="card-premium border-t-8 border-red-500">
             <div class="px-6 py-5 bg-red-50 border-b border-red-100 flex items-center gap-3">
-                <svg class="w-7 h-7 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13l-3 3m0 0l-3-3m3 3V8m0 13a9 9 0 110 18 9 9 0 010-18z"></path></svg>
-                <h2 class="text-xl font-extrabold text-red-900 tracking-tight">Nuevo Gasto</h2>
+                <h2 class="text-lg font-extrabold text-red-500 tracking-tight">Nuevo Gasto</h2>
             </div>
 
             <form id="formGastos" class="p-6 space-y-5">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">Monto</label>
-                        <input type="number" step="any" name="monto" placeholder="0.00" class="w-full p-3.5 rounded-xl outline-none" required>
+                        <label class="block text-sm font-semibold mb-1.5">Monto</label>
+                        <input type="number" step="any" name="monto" placeholder="0.00" class="w-full p-3.5 rounded-xl" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">Moneda</label>
-                        <select name="moneda" onchange="toggleTC(this, 'tcGasto')" class="w-full p-3.5 rounded-xl outline-none">
+                        <label class="block text-sm font-semibold mb-1.5">Moneda</label>
+                        <select name="moneda" onchange="toggleTC(this, 'tcGasto')" class="w-full p-3.5 rounded-xl">
                             <option value="ARS">ARS</option>
                             <option value="USD">USD</option>
                         </select>
@@ -104,30 +120,52 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">T. Cambio</label>
-                        <input type="number" step="any" id="tcGasto" name="tc" placeholder="Cotización" class="w-full p-3.5 rounded-xl outline-none" required>
+                        <label class="block text-sm font-semibold mb-1.5">T. Cambio</label>
+                        <input type="number" step="any" id="tcGasto" name="tc" placeholder="Cotización" class="w-full p-3.5 rounded-xl" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">Fecha</label>
-                        <input type="date" name="fecha" class="w-full p-3.5 rounded-xl outline-none text-slate-700" required>
+                        <label class="block text-sm font-semibold mb-1.5">Fecha</label>
+                        <input type="date" name="fecha" class="w-full p-3.5 rounded-xl" required>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Concepto / Proveedor</label>
-                    <input type="text" name="concepto" placeholder="Ej: Corralón El Maestro" class="w-full p-3.5 rounded-xl outline-none" required>
+                    <label class="block text-sm font-semibold mb-1.5">Concepto / Proveedor</label>
+                    <input type="text" name="concepto" placeholder="Ej: Corralón El Maestro" class="w-full p-3.5 rounded-xl" required>
                 </div>
 
-                <button type="submit" class="w-full btn-red text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95 text-lg tracking-wide">
+                <button type="submit" class="w-full btn-red text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 text-lg tracking-wide">
                     GUARDAR GASTO
                 </button>
             </form>
         </section>
-
     </div>
 
     <script>
-        // Autocompletar fecha de hoy automáticamente
+        // LÓGICA MODO OSCURO
+        const body = document.body;
+        const btnToggle = document.getElementById('theme-toggle');
+        const iconToggle = document.getElementById('theme-icon');
+
+        btnToggle.onclick = () => {
+            if (body.classList.contains('light')) {
+                body.classList.replace('light', 'dark');
+                iconToggle.innerText = '☀️';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.replace('dark', 'light');
+                iconToggle.innerText = '🌙';
+                localStorage.setItem('theme', 'light');
+            }
+        };
+
+        // Cargar preferencia guardada
+        if (localStorage.getItem('theme') === 'dark') {
+            body.classList.replace('light', 'dark');
+            iconToggle.innerText = '☀️';
+        }
+
+        // FECHA HOY
         document.querySelectorAll('input[type="date"]').forEach(input => {
             input.value = new Date().toISOString().split('T')[0];
         });
@@ -137,15 +175,11 @@
             if (select.value === 'USD') {
                 input.value = "1";
                 input.readOnly = true;
-                // Estilo visual de bloqueado pro
-                input.classList.add('bg-slate-100', 'text-slate-500', 'border-slate-200');
-                input.classList.remove('bg-slate-50', 'text-slate-700', 'border-slate-300');
+                input.style.opacity = "0.6";
             } else {
                 input.value = "";
                 input.readOnly = false;
-                // Estilo visual de activo
-                input.classList.remove('bg-slate-100', 'text-slate-500', 'border-slate-200');
-                input.classList.add('bg-slate-50', 'text-slate-700', 'border-slate-300');
+                input.style.opacity = "1";
             }
         }
 
@@ -155,7 +189,6 @@
             const originalText = btn.innerText;
             btn.innerText = "PROCESANDO...";
             btn.disabled = true;
-            btn.classList.add('opacity-70');
 
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData);
@@ -171,7 +204,6 @@
                 if (res.ok) {
                     alert('✅ ' + tipo + ' registrado correctamente');
                     e.target.reset();
-                    // Reset fecha hoy post-envío
                     e.target.querySelector('input[type="date"]').value = new Date().toISOString().split('T')[0];
                 } else {
                     const error = await res.json();
@@ -182,7 +214,6 @@
             } finally {
                 btn.innerText = originalText;
                 btn.disabled = false;
-                btn.classList.remove('opacity-70');
             }
         }
 
@@ -193,7 +224,7 @@
             try {
                 const res = await fetch('https://api.bluelytics.com.ar/v2/latest');
                 const data = await res.json();
-                document.getElementById('bna-info').innerText = `BNA: $${data.oficial.value_sell}`;
+                document.getElementById('bna-info').innerText = `TC BNA venta (hoy): $${data.oficial.value_sell}`;
             } catch {
                 document.getElementById('bna-info').innerText = "TC no disponible";
             }

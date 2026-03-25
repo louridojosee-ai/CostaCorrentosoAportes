@@ -189,11 +189,13 @@
             if (select.value === 'USD') {
                 input.value = "1";
                 input.readOnly = true;
-                input.style.opacity = "0.5";
+                // Agregamos la opacidad y el cursor de prohibido
+                input.classList.add('opacity-50', 'cursor-not-allowed');
             } else {
                 input.value = "";
                 input.readOnly = false;
-                input.style.opacity = "1";
+                // QUITAMOS la opacidad y el cursor de prohibido para que sea normal
+                input.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
 

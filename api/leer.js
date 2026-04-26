@@ -6,17 +6,14 @@ export default async function handler(req, res) {
       credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS),
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
+
     const sheets = google.sheets({ version: 'v4', auth });
     const spreadsheetId = process.env.SPREADSHEET_ID;
 
-    // 1. Leer Totales
-    const resTotales = await sheets.spreadsheets.values.get({
-      spreadsheetId, range: "'Aportesygastos'!O11:O12",
-    });
-
-    // 2. Leer los últimos movimientos (Columnas A a F)
+    // Leer movimientos (Columnas A a H)
     const resMovimientos = await sheets.spreadsheets.values.get({
-      spreadsheetId, range: "'Aportesygastos'!A:F",
+      spreadsheetId,
+      range: "'Aportesygastos'!A:H",
     });
 
     const todasLasFilas = resMovimientos.data.values || [];
@@ -24,8 +21,7 @@ export default async function handler(req, res) {
     const ultimos4 = todasLasFilas.filter(f => f[0]).slice(-4).reverse();
 
     return res.status(200).json({
-      totales: resTotales.data.values,
-      movimientos: ultimos4
+      movimientos: ultimos4,
     });
   } catch (error) {
     return res.status(500).json({ error: error.message });

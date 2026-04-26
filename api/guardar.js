@@ -12,9 +12,9 @@ export default async function handler(req, res) {
     const sheets = google.sheets({ version: 'v4', auth });
     const data = req.body;
     const spreadsheetId = process.env.SPREADSHEET_ID;
-    const nombreHoja = 'Aportesygastos'; // Asegurate que sea el nombre exacto
+    const nombreHoja = 'Aportesygastos';
 
-    // 1. Buscamos el contenido de la columna A para ver cuál es la última fila real
+    // 1. Buscamos la última fila ocupada en columna A
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId,
       range: `${nombreHoja}!A:A`,
@@ -23,23 +23,37 @@ export default async function handler(req, res) {
     const filasActuales = response.data.values ? response.data.values.length : 0;
     const proximaFila = filasActuales + 1;
 
-    // 2. Preparamos los datos (A a F)
-    const tipoFormateado = data.tipo === 'APORTE' ? 'Aporte' : 'Gasto';
-    const fila = [
-      tipoFormateado,
-      data.fecha,
-      data.monto,
-      data.tc || '1',
-      data.tipo === 'APORTE' ? data.persona : '-',
-      data.concepto
+    // 2. Determinar código para columna D
+    let codigoD;
+    if (data.tipo === 'APORTE') {
+      codigoD = data.persona === 'Omar' ? 11 : 12; // Omar=11, Pablo=12
+    } else {
+      codigoD = 23; // Gastos siempre 23
+    }
+
+    // 3. Preparamos datos para columnas A a E
+    const filaAE = [
+      data.fecha,       // A: Fecha
+      data.monto,       // B: Monto
+      data.tc || '1',   // C: Tipo de cambio
+      codigoD,          // D: Código (11, 12 o 23)
+      data.caja,        // E: Código de caja (1, 2, 3 o 4)
     ];
 
-    // 3. Escribimos exactamente en la fila siguiente, ignorando las fórmulas de las columnas de al lado
+    // 4. Escribimos A:E (sin tocar F y G que son fórmulas)
     await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: `${nombreHoja}!A${proximaFila}:F${proximaFila}`,
+      range: `${nombreHoja}!A${proximaFila}:E${proximaFila}`,
       valueInputOption: 'USER_ENTERED',
-      requestBody: { values: [fila] },
+      requestBody: { values: [filaAE] },
+    });
+
+    // 5. Escribimos H (concepto) por separado para no pisar F y G
+    await sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `${nombreHoja}!H${proximaFila}`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values: [[data.concepto]] },
     });
 
     return res.status(200).json({ success: true });
